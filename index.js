@@ -2,84 +2,138 @@ const express = require("express");
 const app = express();
 const port = 4000;
 const path = require("path");
+const cors = require("cors");
+
 let randomFive = genFiveRandom();
+
 app.use("/static", express.static(path.join(__dirname, "public")));
 app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+
 app.get("/", (req, res) => {
-  console.log(randomFive);
-  return res.send(JSON.stringify(randomFive));
+  return res.json(randomFive);
 });
-app.get("/item/:id", async (req, res) => {
+
+app.get("/item/:id?", (req, res) => {
   const id = +req.params.id;
   const myEle = randomFive.find((e) => e.id === id);
+  const query = req.query;
   if (myEle) {
-    myEle.state = !myEle.state;
-    return res.status(200).json({ message: "toggled successfully" });
+    if (Object.values(query)[0] === "state") {
+      myEle.state = !myEle.state;
+    }
+    if (Object.values(query)[0] === "like") {
+      myEle.like = !myEle.like;
+    }
+    return res.status(200).json({ message: "Toggled successfully" });
   } else {
-    return res.status(404).json({ message: "not found" });
+    return res.status(404).json({ message: "Not found" });
   }
 });
+// app.get("/item/:id", (req, res) => {
+//   const id = +req.params.id;
+//   const myEle = randomFive.find((e) => e.id === id);
+//   if (myEle) {
+//     myEle.state = !myEle.state;
+//     return res.status(200).json({ message: "Toggled successfully" });
+//   } else {
+//     return res.status(404).json({ message: "Not found" });
+//   }
+// });
+
 app.post("/item/:id", async (req, res) => {
   const id = +req.params.id;
-  const { type, to } = req.body;
+  const { to } = req.body;
   const myEle = randomFive.find((e) => e.id === id);
   if (myEle) {
-    if (type === "hex" && to === "rgb") {
-      myEle["color"] = await hexToRgb(myEle["color"]);
-      myEle["type"] = "rgb";
-
-      return await res.send(JSON.stringify(randomFive));
+    if (myEle.type === "hex" && to === "rgb") {
+      myEle.color = hexToRgb(myEle.color);
+      myEle.type = "rgb";
+      return res.json(randomFive);
     }
-    if (type === "hex" && to === "hsl") {
-      myEle["color"] = await hexToHsl(myEle["color"]);
-      myEle["type"] = "hsl";
+    if (myEle.type === "hex" && to === "hsl") {
+      myEle.color = hexToHsl(myEle.color);
+      myEle.type = "hsl";
       console.log(randomFive);
-      return res.send(JSON.stringify(randomFive));
+      return res.json(randomFive);
     }
-    if (type === "rgb" && to === "hex") {
-      const hexColor = await rgbToHex(myEle["color"]);
-      console.log(hexColor);
-      myEle["color"] = hexColor;
-      myEle["type"] = "hex";
-      return res.send(JSON.stringify(randomFive));
-    }
-    if (type === "hsl" && to === "hex") {
-      myEle["color"] = await hslToHex(myEle["color"]);
-      myEle["type"] = "hex";
+    if (myEle.type === "hex" && to === "rgb") {
+      console.log(hexToRgb(myEle.color));
+      myEle.color = hexToRgb(myEle.color);
+      myEle.type = "rgb";
       console.log(randomFive);
-      return res.send(JSON.stringify(randomFive));
+      return res.json(randomFive);
     }
+    if (myEle.type === "rgb" && to === "hex") {
+      myEle.color = rgbToHex(myEle.color);
+      myEle.type = "hex";
+      return res.json(randomFive);
+    }
+    if (myEle.type === "rgb" && to === "hsl") {
+      const result = rgbToHex(myEle.color);
+      myEle.color = hexToHsl(result);
+      myEle.type = "hsl";
+      return res.json(randomFive);
+    }
+    if (myEle.type === "hsl" && to === "hex") {
+      myEle.color = hslToHex(myEle.color);
+      myEle.type = "hex";
+      console.log(randomFive);
+      return res.json(randomFive);
+    }
+    if (myEle.type === "hsl" && to === "rgb") {
+      const result = extractNumbers(myEle.color);
+      myEle.color = hslToRgb(result[0], result[1], result[2]);
+      myEle.type = "rgb";
+      return res.json(randomFive);
+    }
+    if (myEle.type === to) {
+      console.log("lllll");
+      return;
+    }
+    return;
   } else {
-    return res.status(404).json({ message: "not found" });
+    return res.status(404).json({ message: "Not found" });
   }
 });
-app.get("/regenerate", async (req, res) => {
-  const newData = await reGenerate();
-  console.log(newData);
-  return res.send(JSON.stringify(newData));
+
+app.get("/regenerate", (req, res) => {
+  randomFive = reGenerate();
+  setTimeout(() => {}, 2000);
+  return res.json(randomFive);
 });
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
 function randColor() {
   let n = (Math.random() * 0xfffff * 1000000).toString(16);
   return "#" + n.slice(0, 6);
 }
+
 function genFiveRandom() {
   return Array.from({ length: 5 }, (_, id) => ({
     id,
     color: randColor(),
     state: false,
     type: "hex",
+    like: false,
   }));
 }
+
 function reGenerate() {
   return randomFive.map((ele) =>
-    !ele.state ? ele : { ...ele, color: randColor() }
+    ele.state ? ele : { ...ele, color: randColor() }
   );
 }
-async function hexToHsl(hex) {
+
+function hexToHsl(hex) {
   hex = hex.replace(/^#/, "");
   let r = parseInt(hex.substring(0, 2), 16) / 255;
   let g = parseInt(hex.substring(2, 4), 16) / 255;
@@ -89,6 +143,7 @@ async function hexToHsl(hex) {
   let h,
     s,
     l = (max + min) / 2;
+
   if (max === min) {
     h = s = 0;
   } else {
@@ -106,20 +161,23 @@ async function hexToHsl(hex) {
         break;
     }
   }
+
   h = Math.round(h);
   s = Math.round(s * 100);
   l = Math.round(l * 100);
-  return await `hsl(${h}, ${s}%, ${l}%)`;
+  return `hsl(${h}, ${s}%, ${l}%)`;
 }
-async function hexToRgb(hex) {
+
+function hexToRgb(hex) {
   hex = hex.replace(/^#/, "");
   let r = parseInt(hex.substring(0, 2), 16);
   let g = parseInt(hex.substring(2, 4), 16);
   let b = parseInt(hex.substring(4, 6), 16);
 
-  return await `rgb(${r}, ${g}, ${b})`;
+  return `rgb(${r}, ${g}, ${b})`;
 }
-async function hslToRgb(h, s, l) {
+
+function hslToRgb(h, s, l) {
   s /= 100;
   l /= 100;
 
@@ -160,28 +218,31 @@ async function hslToRgb(h, s, l) {
   g = Math.round((g + m) * 255);
   b = Math.round((b + m) * 255);
 
-  return await { r, g, b };
+  return `rgb(${r},${g},${b})`;
 }
 
-async function rgbToHex(str) {
-  const arr = await extractNumbers(str);
+function rgbToHex(str) {
+  console.log(str);
+  const arr = extractNumbers(str);
   const toHex = (value) => {
     let hex = value?.toString(16);
     return hex?.length === 1 ? "0" + hex : hex;
   };
-  return `#${toHex(+arr[0])}${toHex(+arr[1])}${toHex(+arr[2])}`;
+  return `#${toHex(arr[0])}${toHex(arr[1])}${toHex(arr[2])}`;
 }
 
-async function hslToHex(input) {
-  const arr = await extractNumbers(input);
-  const ress = await hslToRgb(+arr[0], +arr[1], +arr[2]);
-  return await rgbToHex(Object.values(ress));
+function hslToHex(input) {
+  const arr = extractNumbers(input);
+  const rgb = hslToRgb(arr[0], arr[1], arr[2]);
+  return rgbToHex(rgb);
 }
-async function extractNumbers(input) {
+
+function extractNumbers(input) {
   const str = typeof input === "string" ? input : String(input);
-  const match = str.match(/\d+/g);
+  const match = str.replace(/%/g, "").match(/\d+/g);
   return match ? match.map(Number) : [];
 }
+
 // function generateMonochromeColors(baseHue, numShades) {
 //   let colors = [];
 //   for (let i = 0; i < numShades; i++) {
