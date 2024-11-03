@@ -222,7 +222,6 @@ function hslToRgb(h, s, l) {
 }
 
 function rgbToHex(str) {
-  console.log(str);
   const arr = extractNumbers(str);
   const toHex = (value) => {
     let hex = value?.toString(16);
