@@ -5,7 +5,7 @@ const path = require("path");
 const cors = require("cors");
 
 let randomFive = genFiveRandom();
-
+var type = "";
 app.use("/static", express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(
@@ -16,6 +16,74 @@ app.use(
 );
 
 app.get("/", (req, res) => {
+  return res.json({ randomFive, type });
+});
+app.post("/", (req, res) => {
+  const { method } = req.body;
+  if (method) {
+    const baseHue = Math.floor(Math.random() * 360);
+    if (method === "random") {
+      type = "random";
+      randomFive = genFiveRandom();
+      return res.json({ randomFive, type });
+    }
+    if (method === "monochrome") {
+      type = "monochrome";
+      const data = generateMonochromeColors(baseHue);
+      randomFive = Array.from({ length: 5 }, (_, id) => ({
+        id,
+        color: data[id],
+        type: "hsl",
+        like: false,
+      }));
+
+      return res.json({ randomFive, type });
+      // return res.json(data);
+    }
+    if (method === "additional") {
+      type = "additional";
+      const data = generateAdditionalColors(baseHue);
+      randomFive = Array.from({ length: 3 }, (_, id) => ({
+        id,
+        color: data[id],
+
+        type: "hsl",
+        like: false,
+      }));
+      // console.log("additional", data);
+      return res.json({ randomFive, type });
+    }
+    if (method === "triadic") {
+      type = "triadic";
+      const data = generateTriadicColors(baseHue);
+      randomFive = Array.from({ length: 3 }, (_, id) => ({
+        id,
+        color: data[id],
+
+        type: "hsl",
+        like: false,
+      }));
+      // console.log("additional", data);
+      return res.json({ randomFive, type });
+    }
+    if (method === "quadratic") {
+      type = "quadratic";
+      const data = generateQuadraticColors(baseHue);
+      randomFive = Array.from({ length: 4 }, (_, id) => ({
+        id,
+        color: data[id],
+
+        type: "hsl",
+        like: false,
+      }));
+      // console.log("additional", data);
+      return res.json({ randomFive, type });
+      // console.log("quadratic", data);
+    }
+  } else {
+    return res.status(404);
+  }
+  // console.log(method);
   return res.json(randomFive);
 });
 
@@ -26,6 +94,7 @@ app.get("/item/:id?", (req, res) => {
   if (myEle) {
     if (Object.values(query)[0] === "state") {
       myEle.state = !myEle.state;
+      console.log(myEle);
     }
     if (Object.values(query)[0] === "like") {
       myEle.like = !myEle.like;
@@ -51,6 +120,7 @@ app.post("/item/:id", async (req, res) => {
   const { to } = req.body;
   const myEle = randomFive.find((e) => e.id === id);
   if (myEle) {
+    console.log("myEle", myEle);
     if (myEle.type === "hex" && to === "rgb") {
       myEle.color = hexToRgb(myEle.color);
       myEle.type = "rgb";
@@ -59,14 +129,14 @@ app.post("/item/:id", async (req, res) => {
     if (myEle.type === "hex" && to === "hsl") {
       myEle.color = hexToHsl(myEle.color);
       myEle.type = "hsl";
-      console.log(randomFive);
+      // console.log(randomFive);
       return res.json(randomFive);
     }
     if (myEle.type === "hex" && to === "rgb") {
       console.log(hexToRgb(myEle.color));
       myEle.color = hexToRgb(myEle.color);
       myEle.type = "rgb";
-      console.log(randomFive);
+      // console.log(randomFive);
       return res.json(randomFive);
     }
     if (myEle.type === "rgb" && to === "hex") {
@@ -93,7 +163,7 @@ app.post("/item/:id", async (req, res) => {
       return res.json(randomFive);
     }
     if (myEle.type === to) {
-      console.log("lllll");
+      // console.log("lllll");
       return;
     }
     return;
@@ -102,10 +172,66 @@ app.post("/item/:id", async (req, res) => {
   }
 });
 
-app.get("/regenerate", (req, res) => {
-  randomFive = reGenerate();
-  setTimeout(() => {}, 2000);
-  return res.json(randomFive);
+app.get("/regenerate?", (req, res) => {
+  if (req.query["tab"]) {
+    const baseHue = Math.floor(Math.random() * 360);
+    if (req.query["tab"] === "random") {
+      const data = reGenerate();
+      return res.json({ randomFive: data });
+    } else if (req.query["tab"] === "monochrome") {
+      const data = generateMonochromeColors(baseHue);
+      randomFive = Array.from({ length: 5 }, (_, id) => ({
+        id,
+        color: data[id],
+        state: false,
+        type: "hsl",
+        like: false,
+      }));
+
+      return res.json({ randomFive });
+    } else if (req.query["tab"] === "additional") {
+      const data = generateAdditionalColors(baseHue);
+      randomFive = Array.from({ length: 3 }, (_, id) => ({
+        id,
+        color: data[id],
+        state: false,
+        type: "hsl",
+        like: false,
+      }));
+
+      return res.json({ randomFive });
+    } else if (req.query["tab"] === "triadic") {
+      const data = generateTriadicColors(baseHue);
+      randomFive = Array.from({ length: 3 }, (_, id) => ({
+        id,
+        color: data[id],
+        state: false,
+        type: "hsl",
+        like: false,
+      }));
+
+      return res.json({ randomFive });
+    } else if (req.query["tab"] === "quadratic") {
+      const data = generateQuadraticColors(baseHue);
+      randomFive = Array.from({ length: 4 }, (_, id) => ({
+        id,
+        color: data[id],
+        state: false,
+        type: "hsl",
+        like: false,
+      }));
+      // console.log("additional", data);
+      return res.json({ randomFive });
+    }
+  } else {
+    return res.status(404);
+  }
+  // randomFive = reGenerate();
+  // setTimeout(() => {}, 2000);
+  // return res.json(randomFive);
+});
+app.get("/bycode", (req, res) => {
+  console.log("/bycode");
 });
 
 app.listen(port, () => {
@@ -241,54 +367,60 @@ function extractNumbers(input) {
   const match = str.replace(/%/g, "").match(/\d+/g);
   return match ? match.map(Number) : [];
 }
+// ***********************
+// الاول
+function generateRandomColor() {
+  let hue = Math.floor(Math.random() * 360);
+  let saturation = Math.floor(Math.random() * 100);
+  let lightness = Math.floor(Math.random() * 100);
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
 
-// function generateMonochromeColors(baseHue, numShades) {
-//   let colors = [];
-//   for (let i = 0; i < numShades; i++) {
-//     let lightness = 20 + i * 10; // قم بتعديل القيم حسب الحاجة
-//     colors.push(`hsl(${baseHue}, 50%, ${lightness}%)`);
-//   }
-//   return colors;
-// }
+// النوع الاول
+function generateQuadraticColors(baseHue) {
+  return [
+    `hsl(${baseHue}, 50%, 50%)`,
+    `hsl(${(baseHue + 90) % 360}, 50%, 50%)`,
+    `hsl(${(baseHue + 180) % 360}, 50%, 50%)`,
+    `hsl(${(baseHue + 270) % 360}, 50%, 50%)`,
+  ];
+}
+
+function generateTriadicColors(baseHue) {
+  return [
+    `hsl(${baseHue}, 50%, 50%)`,
+    `hsl(${(baseHue + 120) % 360}, 50%, 50%)`,
+    `hsl(${(baseHue + 240) % 360}, 50%, 50%)`,
+  ];
+}
+
+// النوع الثالث
+
+function generateAdditionalColors(baseHue) {
+  return [
+    `hsl(${baseHue}, 50%, 50%)`, //
+    `hsl(${(baseHue + 30) % 360}, 50%, 50%)`,
+    `hsl(${(baseHue - 30 + 360) % 360}, 50%, 50%)`,
+  ];
+}
+
+// النوع الرابع
+function generateMonochromeColors(baseHue) {
+  let colors = [];
+  for (let i = 0; i < 5; i++) {
+    let lightness = 20 + i * 10;
+    colors.push(`hsl(${baseHue}, 50%, ${lightness}%)`);
+  }
+  return colors;
+}
+// ***********************
 
 // console.log(generateMonochromeColors(200, 5)); // درجات الأزرق
 
-// function generateAdditionalColors(baseHue) {
-//   return [
-//     `hsl(${baseHue}, 50%, 50%)`, // اللون الأساسي
-//     `hsl(${(baseHue + 30) % 360}, 50%, 50%)`, // لون إضافي 1
-//     `hsl(${(baseHue - 30 + 360) % 360}, 50%, 50%)` // لون إضافي 2
-//   ];
-// }
-
 // console.log(generateAdditionalColors(200)); // ألوان إضافية للأزرق
-
-// function generateTriadicColors(baseHue) {
-//   return [
-//     `hsl(${baseHue}, 50%, 50%)`, // اللون الأساسي
-//     `hsl(${(baseHue + 120) % 360}, 50%, 50%)`, // لون ثلاثي 1
-//     `hsl(${(baseHue + 240) % 360}, 50%, 50%)` // لون ثلاثي 2
-//   ];
-// }
 
 // console.log(generateTriadicColors(200)); // ألوان ثلاثية للأزرق
 
-// function generateQuadraticColors(baseHue) {
-//   return [
-//     `hsl(${baseHue}, 50%, 50%)`, // اللون الأساسي
-//     `hsl(${(baseHue + 90) % 360}, 50%, 50%)`, // لون رباعي 1
-//     `hsl(${(baseHue + 180) % 360}, 50%, 50%)`, // لون رباعي 2
-//     `hsl(${(baseHue + 270) % 360}, 50%, 50%)` // لون رباعي 3
-//   ];
-// }
-
 // console.log(generateQuadraticColors(200)); // ألوان رباعية للأزرق
-
-// function generateRandomColor() {
-//   let hue = Math.floor(Math.random() * 360);
-//   let saturation = Math.floor(Math.random() * 100);
-//   let lightness = Math.floor(Math.random() * 100);
-//   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-// }
 
 // console.log(generateRandomColor()); // لون عشوائي
