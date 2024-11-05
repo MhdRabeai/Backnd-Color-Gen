@@ -3,7 +3,8 @@ const app = express();
 const port = 4000;
 const path = require("path");
 const cors = require("cors");
-
+const fs = require("fs/promises");
+const CryptoJS = require("crypto-js");
 let randomFive = genFiveRandom();
 var type = "";
 app.use("/static", express.static(path.join(__dirname, "public")));
@@ -34,11 +35,9 @@ app.post("/", (req, res) => {
         id,
         color: data[id],
         type: "hsl",
-        like: false,
       }));
 
       return res.json({ randomFive, type });
-      // return res.json(data);
     }
     if (method === "additional") {
       type = "additional";
@@ -46,11 +45,8 @@ app.post("/", (req, res) => {
       randomFive = Array.from({ length: 3 }, (_, id) => ({
         id,
         color: data[id],
-
         type: "hsl",
-        like: false,
       }));
-      // console.log("additional", data);
       return res.json({ randomFive, type });
     }
     if (method === "triadic") {
@@ -59,11 +55,8 @@ app.post("/", (req, res) => {
       randomFive = Array.from({ length: 3 }, (_, id) => ({
         id,
         color: data[id],
-
         type: "hsl",
-        like: false,
       }));
-      // console.log("additional", data);
       return res.json({ randomFive, type });
     }
     if (method === "quadratic") {
@@ -72,18 +65,13 @@ app.post("/", (req, res) => {
       randomFive = Array.from({ length: 4 }, (_, id) => ({
         id,
         color: data[id],
-
         type: "hsl",
-        like: false,
       }));
-      // console.log("additional", data);
       return res.json({ randomFive, type });
-      // console.log("quadratic", data);
     }
   } else {
     return res.status(404);
   }
-  // console.log(method);
   return res.json(randomFive);
 });
 
@@ -104,16 +92,6 @@ app.get("/item/:id?", (req, res) => {
     return res.status(404).json({ message: "Not found" });
   }
 });
-// app.get("/item/:id", (req, res) => {
-//   const id = +req.params.id;
-//   const myEle = randomFive.find((e) => e.id === id);
-//   if (myEle) {
-//     myEle.state = !myEle.state;
-//     return res.status(200).json({ message: "Toggled successfully" });
-//   } else {
-//     return res.status(404).json({ message: "Not found" });
-//   }
-// });
 
 app.post("/item/:id", async (req, res) => {
   const id = +req.params.id;
@@ -185,7 +163,6 @@ app.get("/regenerate?", (req, res) => {
         color: data[id],
         state: false,
         type: "hsl",
-        like: false,
       }));
 
       return res.json({ randomFive });
@@ -196,7 +173,6 @@ app.get("/regenerate?", (req, res) => {
         color: data[id],
         state: false,
         type: "hsl",
-        like: false,
       }));
 
       return res.json({ randomFive });
@@ -207,7 +183,6 @@ app.get("/regenerate?", (req, res) => {
         color: data[id],
         state: false,
         type: "hsl",
-        like: false,
       }));
 
       return res.json({ randomFive });
@@ -218,22 +193,42 @@ app.get("/regenerate?", (req, res) => {
         color: data[id],
         state: false,
         type: "hsl",
-        like: false,
       }));
-      // console.log("additional", data);
       return res.json({ randomFive });
     }
   } else {
     return res.status(404);
   }
-  // randomFive = reGenerate();
-  // setTimeout(() => {}, 2000);
-  // return res.json(randomFive);
 });
-app.get("/bycode", (req, res) => {
-  console.log("/bycode");
+app.get("/palettes", async (req, res) => {
+  try {
+    const data = await fs.readFile("./db/paletts.json", { encoding: "utf8" });
+    return res.send(data);
+  } catch (err) {
+    return res.status(404);
+  }
 });
-
+app.post("/palettes", async (req, res) => {
+  const uuid = CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex);
+  const shortUuid = uuid.slice(0, 8);
+  const { paletteName, palette } = req.body;
+  try {
+    const data = JSON.parse(
+      await fs.readFile("./db/paletts.json", { encoding: "utf8" })
+    );
+    const myObj = {
+      code: shortUuid,
+      paletteName,
+      palette,
+      like: false,
+    };
+    data.push(myObj);
+    await fs.writeFile("./db/paletts.json", JSON.stringify(data, null, "\t"));
+    return res.status(200).json({ code: shortUuid });
+  } catch (err) {
+    return res.status(404);
+  }
+});
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
@@ -249,7 +244,6 @@ function genFiveRandom() {
     color: randColor(),
     state: false,
     type: "hex",
-    like: false,
   }));
 }
 
@@ -368,15 +362,7 @@ function extractNumbers(input) {
   return match ? match.map(Number) : [];
 }
 // ***********************
-// الاول
-function generateRandomColor() {
-  let hue = Math.floor(Math.random() * 360);
-  let saturation = Math.floor(Math.random() * 100);
-  let lightness = Math.floor(Math.random() * 100);
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-}
 
-// النوع الاول
 function generateQuadraticColors(baseHue) {
   return [
     `hsl(${baseHue}, 50%, 50%)`,
@@ -393,9 +379,6 @@ function generateTriadicColors(baseHue) {
     `hsl(${(baseHue + 240) % 360}, 50%, 50%)`,
   ];
 }
-
-// النوع الثالث
-
 function generateAdditionalColors(baseHue) {
   return [
     `hsl(${baseHue}, 50%, 50%)`, //
@@ -403,8 +386,6 @@ function generateAdditionalColors(baseHue) {
     `hsl(${(baseHue - 30 + 360) % 360}, 50%, 50%)`,
   ];
 }
-
-// النوع الرابع
 function generateMonochromeColors(baseHue) {
   let colors = [];
   for (let i = 0; i < 5; i++) {
@@ -413,14 +394,3 @@ function generateMonochromeColors(baseHue) {
   }
   return colors;
 }
-// ***********************
-
-// console.log(generateMonochromeColors(200, 5)); // درجات الأزرق
-
-// console.log(generateAdditionalColors(200)); // ألوان إضافية للأزرق
-
-// console.log(generateTriadicColors(200)); // ألوان ثلاثية للأزرق
-
-// console.log(generateQuadraticColors(200)); // ألوان رباعية للأزرق
-
-// console.log(generateRandomColor()); // لون عشوائي

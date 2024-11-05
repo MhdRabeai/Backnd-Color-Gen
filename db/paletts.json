@@ -1,0 +1,117 @@
+[
+  {
+    "code": "067274e0",
+    "paletteName": "test",
+    "palette": [
+      {
+        "id": 0,
+        "color": "hsl(83, 50%, 50%)",
+        "type": "hsl"
+      },
+      {
+        "id": 1,
+        "color": "hsl(203, 50%, 50%)",
+        "type": "hsl"
+      },
+      {
+        "id": 2,
+        "color": "hsl(323, 50%, 50%)",
+        "type": "hsl"
+      }
+    ],
+    "like": false
+  },
+  {
+    "code": "84739b1f",
+    "paletteName": "mmm",
+    "palette": [
+      {
+        "id": 0,
+        "color": "#3a64f2",
+        "state": false,
+        "type": "hex"
+      },
+      {
+        "id": 1,
+        "color": "#469f02",
+        "state": false,
+        "type": "hex"
+      },
+      {
+        "id": 2,
+        "color": "#1713d2",
+        "state": false,
+        "type": "hex"
+      },
+      {
+        "id": 3,
+        "color": "#66846a",
+        "state": false,
+        "type": "hex"
+      },
+      {
+        "id": 4,
+        "color": "#934b4e",
+        "state": false,
+        "type": "hex"
+      }
+    ],
+    "like": false
+  },
+  {
+    "code": "c03c3130",
+    "paletteName": "322q",
+    "palette": [
+      {
+        "id": 0,
+        "color": "hsl(270, 50%, 50%)",
+        "type": "hsl",
+        "like": false
+      },
+      {
+        "id": 1,
+        "color": "hsl(0, 50%, 50%)",
+        "type": "hsl",
+        "like": false
+      },
+      {
+        "id": 2,
+        "color": "hsl(90, 50%, 50%)",
+        "type": "hsl",
+        "like": false
+      },
+      {
+        "id": 3,
+        "color": "hsl(180, 50%, 50%)",
+        "type": "hsl",
+        "like": false
+      }
+    ],
+    "like": false
+  },
+  {
+    "code": "477617de",
+    "paletteName": "sd321",
+    "palette": [
+      {
+        "id": 0,
+        "color": "hsl(274, 50%, 50%)",
+        "type": "hsl",
+        "like": false
+      },
+      {
+        "id": 1,
+        "color": "hsl(34, 50%, 50%)",
+        "type": "hsl",
+        "like": false
+      },
+      {
+        "id": 2,
+        "color": "hsl(154, 50%, 50%)",
+        "type": "hsl",
+        "like": false
+      }
+    ],
+    "like": false
+  }
+]
