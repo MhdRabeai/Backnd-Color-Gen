@@ -84,7 +84,7 @@ app.get("/item/:id?", (req, res) => {
       myEle.state = !myEle.state;
       console.log(myEle);
     }
-    if (Object.values(query)[0] === "like") {
+    if (Object.values(query)[0] === "newColor") {
       myEle.like = !myEle.like;
     }
     return res.status(200).json({ message: "Toggled successfully" });
@@ -93,9 +93,10 @@ app.get("/item/:id?", (req, res) => {
   }
 });
 
-app.post("/item/:id", async (req, res) => {
+app.post("/item/:id?", async (req, res) => {
   const id = +req.params.id;
   const { to } = req.body;
+
   const myEle = randomFive.find((e) => e.id === id);
   if (myEle) {
     console.log("myEle", myEle);
@@ -144,6 +145,7 @@ app.post("/item/:id", async (req, res) => {
       // console.log("lllll");
       return;
     }
+
     return;
   } else {
     return res.status(404).json({ message: "Not found" });
@@ -225,6 +227,191 @@ app.post("/palettes", async (req, res) => {
     data.push(myObj);
     await fs.writeFile("./db/paletts.json", JSON.stringify(data, null, "\t"));
     return res.status(200).json({ code: shortUuid });
+  } catch (err) {
+    return res.status(404);
+  }
+});
+app.get("/palettes/:code?", async (req, res) => {
+  const { code } = req.params;
+  const { element } = req.query;
+  if (element && element === "like") {
+    try {
+      const data = JSON.parse(
+        await fs.readFile("./db/paletts.json", { encoding: "utf8" })
+      );
+      const myEle = data.find((e) => e.code === code);
+      if (myEle) {
+        myEle["like"] = !myEle["like"];
+        await fs.writeFile(
+          "./db/paletts.json",
+          JSON.stringify(data, null, "\t")
+        );
+        return res.status(200).json({ palette: myEle });
+      } else {
+        throw new Error("Element Not Found!!!");
+      }
+    } catch (err) {
+      return res.status(404);
+    }
+  }
+  if (!element) {
+    const data = JSON.parse(
+      await fs.readFile("./db/paletts.json", { encoding: "utf8" })
+    );
+    const myEle = data.find((e) => e.code === code);
+  } else {
+    return res.status(404);
+  }
+});
+app.post("/palettes/:code", async (req, res) => {
+  const { code } = req.params;
+  const { to } = req.body;
+
+  try {
+    const data = JSON.parse(
+      await fs.readFile("./db/paletts.json", { encoding: "utf8" })
+    );
+    const myEle = data.find((e) => e.code === code);
+    const index = data.findIndex((e) => e.code === code);
+    if (myEle) {
+      console.log("type", myEle["palette"][0]["type"]);
+      if (myEle["palette"][0]["type"] === "hex" && to === "rgb") {
+        myEle["palette"].forEach((element) => {
+          element.color = hexToRgb(element.color);
+          element.type = "rgb";
+          return element;
+        });
+        var myObj = {
+          code: myEle.code,
+          paletteName: myEle.paletteName,
+          palette: myEle.palette,
+          like: myEle.like,
+        };
+        data.splice(index, 1, myObj);
+        await fs.writeFile(
+          "./db/paletts.json",
+          JSON.stringify(data, null, "\t")
+        );
+        return res.status(200).json({ palette: myObj });
+      } else if (myEle["palette"][0]["type"] === "hex" && to === "hsl") {
+        myEle["palette"].forEach((element) => {
+          element.color = hexToHsl(element.color);
+          element.type = "hsl";
+          return element;
+        });
+        var myObj = {
+          code: myEle.code,
+          paletteName: myEle.paletteName,
+          palette: myEle.palette,
+          like: myEle.like,
+        };
+        data.splice(index, 1, myObj);
+        await fs.writeFile(
+          "./db/paletts.json",
+          JSON.stringify(data, null, "\t")
+        );
+        return res.status(200).json({ palette: myObj });
+      } else if (myEle["palette"][0]["type"] === "hex" && to === "rgb") {
+        myEle["palette"].forEach((element) => {
+          element.color = hexToRgb(element.color);
+          element.type = "rgb";
+          return element;
+        });
+        var myObj = {
+          code: myEle.code,
+          paletteName: myEle.paletteName,
+          palette: myEle.palette,
+          like: myEle.like,
+        };
+        data.splice(index, 1, myObj);
+        await fs.writeFile(
+          "./db/paletts.json",
+          JSON.stringify(data, null, "\t")
+        );
+        return res.status(200).json({ palette: myObj });
+      } else if (myEle["palette"][0]["type"] === "rgb" && to === "hex") {
+        myEle["palette"].forEach((element) => {
+          element.color = rgbToHex(element.color);
+          element.type = "hex";
+          return element;
+        });
+        var myObj = {
+          code: myEle.code,
+          paletteName: myEle.paletteName,
+          palette: myEle.palette,
+          like: myEle.like,
+        };
+        data.splice(index, 1, myObj);
+        await fs.writeFile(
+          "./db/paletts.json",
+          JSON.stringify(data, null, "\t")
+        );
+        return res.status(200).json({ palette: myObj });
+      } else if (myEle["palette"][0]["type"] === "rgb" && to === "hsl") {
+        myEle["palette"].forEach((element) => {
+          const result = rgbToHex(element.color);
+          element.color = hexToHsl(result);
+          element.type = "hsl";
+          return element;
+        });
+        var myObj = {
+          code: myEle.code,
+          paletteName: myEle.paletteName,
+          palette: myEle.palette,
+          like: myEle.like,
+        };
+        data.splice(index, 1, myObj);
+        await fs.writeFile(
+          "./db/paletts.json",
+          JSON.stringify(data, null, "\t")
+        );
+        return res.status(200).json({ palette: myObj });
+      } else if (myEle["palette"][0]["type"] === "hsl" && to === "hex") {
+        myEle["palette"].map((element) => {
+          element.color = hslToHex(element.color);
+          element.type = "hex";
+          return element;
+        });
+        var myObj = {
+          code: myEle.code,
+          paletteName: myEle.paletteName,
+          palette: myEle.palette,
+          like: myEle.like,
+        };
+        data.splice(index, 1, myObj);
+        await fs.writeFile(
+          "./db/paletts.json",
+          JSON.stringify(data, null, "\t")
+        );
+        return res.status(200).json({ palette: myObj });
+      } else if (myEle["palette"][0]["type"] === "hsl" && to === "rgb") {
+        myEle["palette"].forEach((element) => {
+          const result = extractNumbers(element.color);
+          element.color = hslToRgb(result[0], result[1], result[2]);
+          element.type = "rgb";
+          return element;
+        });
+        var myObj = {
+          code: myEle.code,
+          paletteName: myEle.paletteName,
+          palette: myEle.palette,
+          like: myEle.like,
+        };
+        data.splice(index, 1, myObj);
+        await fs.writeFile(
+          "./db/paletts.json",
+          JSON.stringify(data, null, "\t")
+        );
+        return res.status(200).json({ palette: myObj });
+      } else if (myEle["palette"][0]["type"] === to) {
+        return myEle;
+      }
+
+      console.log("myObj", myObj);
+      return res.status(200).json({ palette: myObj });
+    } else {
+      throw new Error("Element Not Found!!!");
+    }
   } catch (err) {
     return res.status(404);
   }
@@ -394,3 +581,4 @@ function generateMonochromeColors(baseHue) {
   }
   return colors;
 }
+1;
