@@ -4,12 +4,14 @@ const port = 4000;
 const path = require("path");
 const cors = require("cors");
 const fs = require("fs/promises");
+const fss = require("fs");
 const CryptoJS = require("crypto-js");
 const chroma = require("chroma-js");
 const multer = require("multer");
 let randomFive = genFiveRandom();
+const PDFDocument = require("pdfkit");
 var type = "";
-app.use("/static", express.static(path.join(__dirname, "public")));
+app.use("/", express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(
   cors({
@@ -457,17 +459,83 @@ app.post("/cssFile", upload.single("file"), async (req, res) => {
     const shortUuid = uuid.slice(0, 8);
     const fileName = `colors-${shortUuid}.css`;
     const filePath = path.join(__dirname, "public", "css", fileName);
-    console.log(filePath);
-    // await fs.writeFile(`./public/css/${fileName}`, cssContent);
-    // await fs.appendFile(filePath, cssContent);
-    await fs.writeFile(
-      "./db/paletts.json",
-      JSON.stringify({ hello: "sss" }, null, "\t")
-    );
-    const fileUrl = `http://localhost:${4000}/css/${fileName}`;
-    return res.status(200).json({ url: fileUrl });
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, cssContent, "utf8");
+    const fileUrl = `http://localhost:4000/css/${fileName}`;
+    return res.status(200).json({ url: fileUrl, name: fileName });
   } catch (err) {
     return res.status(404);
+  }
+});
+app.post("/pdfFile", async (req, res) => {
+  try {
+    console.log("send", req.body);
+
+    // توليد الظلال بناءً على الألوان المرسلة
+    const shades = generateShades(req.body);
+    if (!shades || Object.keys(shades).length === 0) {
+      return res.status(400).send("No shades data available");
+    }
+    // إنشاء اسم الملف باستخدام UUID عشوائي
+    const uuid = CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex);
+    const shortUuid = uuid.slice(0, 8);
+    const fileName = `colors-${shortUuid}.pdf`;
+    const filePath = path.join(__dirname, "public", "pdf", fileName);
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    const doc = new PDFDocument({ size: "A4" });
+    const writeStream = fss.createWriteStream(filePath);
+    doc.pipe(writeStream);
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(18)
+      .fillColor("#2C3E50")
+      .text("Color Palette with Shades", {
+        align: "center",
+        underline: true,
+      });
+    doc.moveDown(1);
+    let yPosition = doc.y + 20;
+    let pageNumber = 1;
+    Object.keys(shades).forEach((colorKey, colorIndex) => {
+      const color = shades[colorKey];
+      doc
+        .font("Helvetica")
+        .fontSize(14)
+        .fillColor("#34495E")
+        .text(`${colorKey.charAt(0).toUpperCase() + colorKey.slice(1)}:`, {
+          continued: true,
+        });
+
+      yPosition += 15;
+
+      color.forEach((shade, index) => {
+        if (yPosition + 25 > doc.page.height - 50) {
+          doc.addPage();
+          pageNumber += 1;
+          yPosition = 50;
+        }
+
+        doc.rect(50, yPosition, 100, 20).fill(shade);
+        doc
+          .font("Helvetica")
+          .fontSize(12)
+          .fillColor("#7F8C8D")
+          .text(`Shade ${index + 1}: ${shade}`, 160, yPosition + 5);
+        yPosition += 25;
+      });
+
+      yPosition += 10;
+    });
+
+    doc.end();
+
+    writeStream.on("finish", () => {
+      const fileUrl = `http://localhost:4000/pdf/${fileName}`;
+      res.json({ url: fileUrl });
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send("Error generating PDF file");
   }
 });
 app.listen(port, () => {

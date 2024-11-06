@@ -1,92 +1,92 @@
 [
-	{
-		"code": "067274e0",
-		"paletteName": "test",
-		"palette": [
-			{
-				"id": 0,
-				"color": "#8ebf40",
-				"type": "hex"
-			},
-			{
-				"id": 1,
-				"color": "#408ebf",
-				"type": "hex"
-			},
-			{
-				"id": 2,
-				"color": "#bf408e",
-				"type": "hex"
-			}
-		],
-		"like": true
-	},
-	{
-		"code": "84739b1f",
-		"paletteName": "mmm",
-		"palette": [
-			{
-				"id": 0,
-				"color": "rgb(58, 100, 242)",
-				"state": false,
-				"type": "rgb"
-			},
-			{
-				"id": 1,
-				"color": "rgb(70, 159, 2)",
-				"state": false,
-				"type": "rgb"
-			},
-			{
-				"id": 2,
-				"color": "rgb(23, 19, 210)",
-				"state": false,
-				"type": "rgb"
-			},
-			{
-				"id": 3,
-				"color": "rgb(102, 132, 106)",
-				"state": false,
-				"type": "rgb"
-			},
-			{
-				"id": 4,
-				"color": "rgb(147, 75, 78)",
-				"state": false,
-				"type": "rgb"
-			}
-		],
-		"like": false
-	},
-	{
-		"code": "c03c3130",
-		"paletteName": "322q",
-		"palette": [
-			{
-				"id": 0,
-				"color": "rgb(128, 64, 191)",
-				"type": "rgb",
-				"like": false
-			},
-			{
-				"id": 1,
-				"color": "rgb(191, 64, 64)",
-				"type": "rgb",
-				"like": false
-			},
-			{
-				"id": 2,
-				"color": "rgb(128, 191, 64)",
-				"type": "rgb",
-				"like": false
-			},
-			{
-				"id": 3,
-				"color": "rgb(64, 191, 191)",
-				"type": "rgb",
-				"like": false
-			}
-		],
-		"like": false
-	}
+  {
+    "code": "067274e0",
+    "paletteName": "test",
+    "palette": [
+      {
+        "id": 0,
+        "color": "#8ebf40",
+        "type": "hex"
+      },
+      {
+        "id": 1,
+        "color": "#408ebf",
+        "type": "hex"
+      },
+      {
+        "id": 2,
+        "color": "#bf408e",
+        "type": "hex"
+      }
+    ],
+    "like": true
+  },
+  {
+    "code": "84739b1f",
+    "paletteName": "mmm",
+    "palette": [
+      {
+        "id": 0,
+        "color": "rgb(58, 100, 242)",
+        "state": false,
+        "type": "rgb"
+      },
+      {
+        "id": 1,
+        "color": "rgb(70, 159, 2)",
+        "state": false,
+        "type": "rgb"
+      },
+      {
+        "id": 2,
+        "color": "rgb(23, 19, 210)",
+        "state": false,
+        "type": "rgb"
+      },
+      {
+        "id": 3,
+        "color": "rgb(102, 132, 106)",
+        "state": false,
+        "type": "rgb"
+      },
+      {
+        "id": 4,
+        "color": "rgb(147, 75, 78)",
+        "state": false,
+        "type": "rgb"
+      }
+    ],
+    "like": false
+  },
+  {
+    "code": "c03c3130",
+    "paletteName": "322q",
+    "palette": [
+      {
+        "id": 0,
+        "color": "rgb(128, 64, 191)",
+        "type": "rgb",
+        "like": false
+      },
+      {
+        "id": 1,
+        "color": "rgb(191, 64, 64)",
+        "type": "rgb",
+        "like": false
+      },
+      {
+        "id": 2,
+        "color": "rgb(128, 191, 64)",
+        "type": "rgb",
+        "like": false
+      },
+      {
+        "id": 3,
+        "color": "rgb(64, 191, 191)",
+        "type": "rgb",
+        "like": false
+      }
+    ],
+    "like": false
+  }
 ]
