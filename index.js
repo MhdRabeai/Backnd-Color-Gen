@@ -5,6 +5,8 @@ const path = require("path");
 const cors = require("cors");
 const fs = require("fs/promises");
 const CryptoJS = require("crypto-js");
+const chroma = require("chroma-js");
+const multer = require("multer");
 let randomFive = genFiveRandom();
 var type = "";
 app.use("/static", express.static(path.join(__dirname, "public")));
@@ -15,7 +17,15 @@ app.use(
     credentials: true,
   })
 );
-
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "css");
+  },
+  filename: (req, file, cb) => {
+    cb(null, "temp-colors.css");
+  },
+});
+const upload = multer({ storage: storage });
 app.get("/", (req, res) => {
   return res.json({ randomFive, type });
 });
@@ -416,6 +426,50 @@ app.post("/palettes/:code", async (req, res) => {
     return res.status(404);
   }
 });
+app.get("/palette/item/:code", async (req, res) => {
+  const { code } = req.params;
+
+  try {
+    const data = JSON.parse(
+      await fs.readFile("./db/paletts.json", { encoding: "utf8" })
+    );
+    const myEle = data.find((e) => e.code === code);
+    // const index = data.findIndex((e) => e.code === code);
+    if (myEle) {
+      return res.status(200).json({ data: myEle });
+    }
+  } catch (err) {
+    return res.status(404);
+  }
+});
+app.post("/cssFile", upload.single("file"), async (req, res) => {
+  try {
+    // console.log("send", req.body);
+    const shades = generateShades(req.body);
+    let cssContent = ":root {\n";
+    Object.keys(shades).forEach((colorKey, colorIndex) => {
+      shades[colorKey].forEach((shade, shadeIndex) => {
+        cssContent += `  --${colorKey}-shade-${shadeIndex + 1}: ${shade};\n`;
+      });
+    });
+    cssContent += "}\n";
+    const uuid = CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex);
+    const shortUuid = uuid.slice(0, 8);
+    const fileName = `colors-${shortUuid}.css`;
+    const filePath = path.join(__dirname, "public", "css", fileName);
+    console.log(filePath);
+    // await fs.writeFile(`./public/css/${fileName}`, cssContent);
+    // await fs.appendFile(filePath, cssContent);
+    await fs.writeFile(
+      "./db/paletts.json",
+      JSON.stringify({ hello: "sss" }, null, "\t")
+    );
+    const fileUrl = `http://localhost:${4000}/css/${fileName}`;
+    return res.status(200).json({ url: fileUrl });
+  } catch (err) {
+    return res.status(404);
+  }
+});
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
@@ -581,4 +635,17 @@ function generateMonochromeColors(baseHue) {
   }
   return colors;
 }
-1;
+function generateShades(colors) {
+  let shades = {};
+  colors.forEach((color, colorIndex) => {
+    const colorShades = chroma
+      .scale([
+        chroma(color["color"]).brighten(2),
+        chroma(color["color"]).darken(2),
+      ])
+      .mode("lab")
+      .colors(8);
+    shades[`color${colorIndex + 1}`] = colorShades;
+  });
+  return shades;
+}
